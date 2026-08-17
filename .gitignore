@@ -1,0 +1,35 @@
+# CMake 编译目录和中间文件
+/build/
+**/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+# Geant4 / ROOT 模拟生成的数据
+*.root
+*.log
+*.csv
+*.npz
+*.npy
+
+# 分析脚本生成的图片
+*.png
+*.jpg
+*.jpeg
+
+# Python 和工具缓存
+__pycache__/
+*.py[cod]
+.cache/
+
+# 本地参考论文及操作系统附加信息，不作为项目源码上传
+*.pdf
+*.Zone.Identifier
+*:Zone.Identifier
+
+# 编辑器和系统文件
+.vscode/
+.idea/
+.DS_Store
+*~

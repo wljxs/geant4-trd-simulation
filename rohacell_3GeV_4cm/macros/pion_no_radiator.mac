@@ -1,0 +1,13 @@
+# 3 GeV/c particle in 4 cm Xe/CO2 95:5
+# HF71 equivalent: compact PMI wall fraction 15/(15+200)=6.98%,
+# corresponding to 76.7 mg/cm3 for 1.10 g/cm3 compact PMI.
+/trd/beam/particle pi-
+/trd/beam/momentum 3 GeV
+/trd/radiator/enabled false
+/trd/radiator/material ROHACELL_HF71
+/trd/radiator/foilThickness 15 um
+/trd/radiator/gapThickness 200 um
+/trd/radiator/totalLength 4 cm
+/trd/detector/gas XeCO2_95_5
+/trd/run/events 50000
+/trd/output/directory /home/wljxs/projects/TR/geant4simulation/rohacell_3GeV_4cm/root/pion_no_radiator

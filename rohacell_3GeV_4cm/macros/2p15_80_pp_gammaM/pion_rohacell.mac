@@ -1,0 +1,14 @@
+# 3 GeV/c particle in 4 cm Xe/CO2 95:5
+# Effective G4_POLYPROPYLENE/air radiator: 2.15/80 um,
+# solid fraction=0.026172, density=23.554 mg/cm3,
+# periods=486, modeled length=39924.900 um.
+/trd/beam/particle pi-
+/trd/beam/momentum 3 GeV
+/trd/radiator/enabled true
+/trd/radiator/material G4_POLYPROPYLENE
+/trd/radiator/foilThickness 2.15 um
+/trd/radiator/gapThickness 80 um
+/trd/radiator/totalLength 4 cm
+/trd/detector/gas XeCO2_95_5
+/trd/run/events 50000
+/trd/output/directory /home/wljxs/projects/TR/geant4simulation/rohacell_3GeV_4cm/root/2p15_80_pp_gammaM/pion_rohacell

@@ -1,0 +1,11 @@
+# Auto-generated 5 GeV/c, 4 cm TR radiator scan
+# l1=35 um, l2=90 um, periods=320
+# actual radiator length=40000 um
+/trd/beam/particle e-
+/trd/beam/momentum 5 GeV
+/trd/radiator/material G4_POLYETHYLENE
+/trd/radiator/foilThickness 35 um
+/trd/radiator/gapThickness 90 um
+/trd/radiator/totalLength 4 cm
+/trd/run/events 50000
+/trd/output/directory /home/wljxs/projects/TR/geant4simulation/scan_5GeV_4cm/root/l1_035um_l2_0090um
