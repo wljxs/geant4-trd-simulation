@@ -4,23 +4,32 @@
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
+#include <memory>
+
+class DetectorConstruction;
 class G4Event;
+class G4GenericMessenger;
 class G4ParticleGun;
 
-// 初级粒子源。每个 event 产生一个沿 +z 方向入射的粒子。
+// 初级粒子源。它直接拥有 /trd/beam/... 宏命令，不再经过配置中间层。
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction {
  public:
-  // 旧入口：动量取环境变量 TRD_MOMENTUM_GEV（默认 3 GeV/c）。
-  PrimaryGeneratorAction(const G4String& particleName, G4double startZ);
-  // .mac 入口：直接使用 SimulationConfig 给出的动量。
-  PrimaryGeneratorAction(const G4String& particleName, G4double startZ,
-                         G4double momentum);
+  explicit PrimaryGeneratorAction(const DetectorConstruction* detector);
   ~PrimaryGeneratorAction() override;
+
   // Geant4 在每个 event 开始时自动调用。
   void GeneratePrimaries(G4Event* event) override;
+  const G4String& GetParticleName() const { return fParticleName; }
 
  private:
-  G4ParticleGun* fParticleGun = nullptr;  // 本类拥有，析构时 delete
+  void ConfigureGun();
+
+  const DetectorConstruction* fDetector = nullptr;  // 不拥有
+  G4ParticleGun* fParticleGun = nullptr;             // 本类拥有
+  G4String fParticleName = "e-";
+  G4double fMomentum = 0.0;
+  G4bool fConfigured = false;
+  std::unique_ptr<G4GenericMessenger> fBeamMessenger;
 };
 
 #endif

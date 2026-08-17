@@ -36,8 +36,9 @@ def macro_text(length_cm, events, output_directory):
 /trd/radiator/gapThickness {GAP_THICKNESS_UM} um
 /trd/radiator/totalLength {length_cm} cm
 /trd/detector/gas XeCO2_85_15
-/trd/run/events {events}
 /trd/output/directory {output_directory}
+/run/initialize
+/run/beamOn {events}
 """
 
 

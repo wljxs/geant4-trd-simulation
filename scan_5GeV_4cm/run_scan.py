@@ -36,8 +36,9 @@ def macro_text(l1, l2, events, output_directory):
 /trd/radiator/foilThickness {l1} um
 /trd/radiator/gapThickness {l2} um
 /trd/radiator/totalLength 4 cm
-/trd/run/events {events}
 /trd/output/directory {output_directory}
+/run/initialize
+/run/beamOn {events}
 """
 
 

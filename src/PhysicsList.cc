@@ -32,6 +32,10 @@ class TransitionRadiationPhysics final : public G4VPhysicsConstructor {
       : G4VPhysicsConstructor("TransitionRadiation"), fDetector(detector) {}
   void ConstructParticle() override {}
   void ConstructProcess() override {
+    // enabled 命令在 PhysicsList 构造之后才由宏执行，因此必须在这里判断。
+    if (!fDetector->UseRadiator())
+      return;
+
     // 默认 gammaM；旧扫描可通过环境变量选择另外两种 Geant4 XTR 实现。
     const char* requestedModelEnvironment = std::getenv("TRD_XTR_MODEL");
     const std::string requestedModel = requestedModelEnvironment ?
@@ -155,7 +159,6 @@ PhysicsList::PhysicsList(const DetectorConstruction* detector)
   } else {
     RegisterPhysics(new PAIPhysics);
   }
-  // 没有辐射体时不要注册 XTR，否则模型拿不到有效的辐射体逻辑体。
-  if (detector->UseRadiator())
-    RegisterPhysics(new TransitionRadiationPhysics(detector));
+  // 构造器始终注册；真正建立过程时再读取宏设置的 enabled 值。
+  RegisterPhysics(new TransitionRadiationPhysics(detector));
 }

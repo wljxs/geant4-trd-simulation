@@ -10,5 +10,6 @@
 /trd/radiator/gapThickness 80 um
 /trd/radiator/totalLength 4 cm
 /trd/detector/gas XeCO2_95_5
-/trd/run/events 50000
 /trd/output/directory /home/wljxs/projects/TR/geant4simulation/rohacell_3GeV_4cm/root/2p15_80_pp_gammaM/electron_no_radiator
+/run/initialize
+/run/beamOn 50000
