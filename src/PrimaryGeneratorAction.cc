@@ -29,7 +29,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
       "particle", fParticleName, "Primary particle: e-, pi-, or mu-");
   auto& momentum = fBeamMessenger->DeclarePropertyWithUnit(
       "momentum", "GeV", fMomentum, "Primary momentum");
-  particle.SetStates(G4State_PreInit);
+  particle.SetStates(G4State_PreInit);//限制修改参数
   momentum.SetStates(G4State_PreInit);
 }
 

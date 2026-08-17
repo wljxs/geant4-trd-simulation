@@ -64,7 +64,6 @@ def run(item, force):
         return name, "SKIP", output
     environment = os.environ.copy()
     environment.pop("TRD_TR_ONLY", None)
-    environment["TRD_IONISATION_MODEL"] = "paiphot"
     environment["TRD_XTR_MODEL"] = "gammaM"
     result = subprocess.run(
         [str(EXECUTABLE), str(macro)], cwd=PROJECT, env=environment,

@@ -12,7 +12,7 @@
 
 namespace {
 
-std::string ParticleLabel(const G4String& particle)
+std::string ParticleLabel(const G4String& particle)// 将粒子名称映射为输出文件名中使用的标签。
 {
   if (particle == "e-") return "electron";
   if (particle == "pi-") return "pion";

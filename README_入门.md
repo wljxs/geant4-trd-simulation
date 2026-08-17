@@ -66,7 +66,7 @@ output/tutorial/trd_electron.root
 | 文件 | 初学时要抓住的重点 |
 |---|---|
 | `DetectorConstruction.hh/.cc` | 注册辐射体/气体命令，建立 World、辐射体和21层气体 |
-| `PhysicsList.hh/.cc` | 注册标准电磁过程、可选 PAI 电离模型和 XTR 过程 |
+| `PhysicsList.hh/.cc` | 注册标准电磁过程、衰变和 XTR 过程 |
 | `PrimaryGeneratorAction.hh/.cc` | 注册束流命令，每个 event 发射一个沿 +z 的粒子 |
 | `SteppingAction.hh/.cc` | 每一步检查所在气体层并累计能量沉积 |
 | `StackingAction.hh/.cc` | 识别新产生的 TR 光子并标记其后代 |

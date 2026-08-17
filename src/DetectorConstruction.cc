@@ -24,10 +24,10 @@ DetectorConstruction::DetectorConstruction()
       fRadiatorGap(TRD::kRadiatorGap),
       fTargetLength(TRD::kRadiatorLayers *
                     (TRD::kFoilThickness + TRD::kRadiatorGap)),
-      fRadiatorLayers(TRD::kRadiatorLayers)
+      fRadiatorLayers(TRD::kRadiatorLayers)//初始化
 {
   fTrOnly = std::getenv("TRD_TR_ONLY") != nullptr;
-  if (const char* value = std::getenv("TRD_FOIL_THICKNESS_UM"))
+  if (const char* value = std::getenv("TRD_FOIL_THICKNESS_UM"))//看环境变量
     fFoilThickness = std::stod(value) * um;
   if (const char* value = std::getenv("TRD_RADIATOR_GAP_UM"))
     fRadiatorGap = std::stod(value) * um;
@@ -39,12 +39,12 @@ DetectorConstruction::DetectorConstruction()
     fDetectorGasName = value;
 
   fRadiatorMessenger = std::make_unique<G4GenericMessenger>(
-      this, "/trd/radiator/", "TR radiator configuration");
+      this, "/trd/radiator/", "TR radiator configuration");//创建一个新的 Geant4命令接口
   fDetectorMessenger = std::make_unique<G4GenericMessenger>(
       this, "/trd/detector/", "TRD gas detector configuration");
 
   auto& enabled = fRadiatorMessenger->DeclareProperty(
-      "enabled", fUseRadiator, "Enable transition-radiation radiator");
+      "enabled", fUseRadiator, "Enable transition-radiation radiator");//声明可在宏中使用的命令
   auto& material = fRadiatorMessenger->DeclareProperty(
       "material", fFoilMaterialName, "Geant4 foil material name");
   auto& foil = fRadiatorMessenger->DeclarePropertyWithUnit(
@@ -58,7 +58,7 @@ DetectorConstruction::DetectorConstruction()
       "gas", fDetectorGasName,
       "Detector gas: XeNeIsobutane, XeCO2_85_15, or XeCO2_95_5");
 
-  enabled.SetStates(G4State_PreInit);
+  enabled.SetStates(G4State_PreInit);//限制命令生效阶段
   material.SetStates(G4State_PreInit);
   foil.SetStates(G4State_PreInit);
   gap.SetStates(G4State_PreInit);
@@ -84,12 +84,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         "Gas must be XeNeIsobutane, XeCO2_85_15, or XeCO2_95_5.");
   }
   fRadiatorLayers = static_cast<G4int>(
-      std::floor(fTargetLength / (fFoilThickness + fRadiatorGap)));
+      std::floor(fTargetLength / (fFoilThickness + fRadiatorGap)));//向下取整
   fRadiatorLength =
       fRadiatorLayers * (fFoilThickness + fRadiatorGap);
 
   // ===== 1. 准备基础材料 =====
-  // NIST 管理器能按标准名称创建常用材料，例如 G4_AIR、G4_MYLAR。
+  // NIST 管理器能按标准名称创建常用材料，例如 G4_AIR、G4_MYLAR。还有目前手动定的ROHACELL_HF71
   auto* nist = G4NistManager::Instance();
   auto* air = nist->FindOrBuildMaterial("G4_AIR");
   auto* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
@@ -160,7 +160,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     return world;
   }
 
-  // ===== 4. 配制气体材料 =====
+  // ===== 4. 配制气体材料 =====(目前只有三种气体混合物)
   G4Material* gas = nullptr;
   if (fDetectorGasName == "XeCO2_85_15" ||
       fDetectorGasName == "XeCO2_95_5") {
@@ -201,8 +201,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         worldLogical, false, region);
   }
 
-  // 名称 GasDetector 很重要：PhysicsList 用这个 Region 名称只在气体中
-  // 覆盖 PAI/PAIPhot 电离模型。
+  // 气体 Region 使用独立的 production cut；电离仍由标准 EM 物理处理。
   auto* gasRegion = new G4Region("GasDetector");
   auto* gasCuts = new G4ProductionCuts;
   double gasProductionCut = TRD::kGasProductionCut;
@@ -218,16 +217,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
          << TRD::kRegionLength / mm << " mm/layer, production cut = "
          << gasCuts->GetProductionCut("e-") / mm << " mm, mean excitation energy = "
          << gas->GetIonisation()->GetMeanExcitationEnergy() / eV << " eV" << G4endl;
-  // 可选诊断：打印 3 GeV/c μ- 对应的 beta*gamma 和密度效应修正。
-  if (std::getenv("TRD_DUMP_BETHE")) {
-    constexpr double muonMomentum = 3.0 * GeV;
-    constexpr double muonMass = 105.6583755 * MeV;
-    const double betaGamma = muonMomentum / muonMass;
-    G4cout << "Bethe-Bloch material input at 3 GeV/c mu-: beta*gamma = "
-           << betaGamma << ", density correction = "
-           << gas->GetIonisation()->DensityCorrection(std::log10(betaGamma))
-           << G4endl;
-  }
   // Construct() 必须把最外层物理体交还给 RunManager。
   return world;
 }
