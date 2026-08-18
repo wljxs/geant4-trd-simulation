@@ -56,8 +56,14 @@
 
 # 是否只统计辐射体出口的 TR 光子。
 # false：建立下游气体探测器并正常输运光子。
-# true：不建立气体探测器，记录 TR 光子后立即终止其输运。
+# true：不建立气体探测器；TR 光子穿过启用的出口统计面后终止输运。
 /trd/mode/trOnly false
+
+# 统计穿过辐射体下游虚拟面的直接 TR 光子。
+# 该面没有材料，不会影响光子输运。
+/trd/scoring/exitFlux true
+# 距辐射体出口的距离；0 um 就是辐射体下游表面。
+/trd/scoring/exitDistance 0 um
 
 
 # -----------------------------------------------------------------------------
@@ -74,9 +80,9 @@
 # 项目还专门实现了 Rohacell PMI 近似材料：
 # /trd/radiator/material ROHACELL_HF71
 
-# XTR 模型：gammaM（默认）、gammaR 或 transpR。
-/trd/radiator/model gammaM
-# /trd/radiator/model gammaR
+# XTR 模型：gammaR（默认）、gammaM 或 transpR。
+/trd/radiator/model gammaR
+# /trd/radiator/model gammaM
 # /trd/radiator/model transpR
 
 

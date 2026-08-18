@@ -4,17 +4,20 @@
 #include "G4UserSteppingAction.hh"
 
 class EventAction;
+class DetectorConstruction;
 class G4Step;
 
-// 步级回调：粒子每走完一个 step 都会调用。
-// 这里只关心名为 GasLayer 的体，并按层累计能量沉积和初级粒子能损。
+// 步级回调：记录直接 TR 光子穿过虚拟出口面的通量；存在气体时，
+// 还会按 GasLayer 累计能量沉积和初级粒子能损。
 class SteppingAction final : public G4UserSteppingAction {
  public:
-  explicit SteppingAction(EventAction* eventAction);
+  SteppingAction(EventAction* eventAction,
+                 const DetectorConstruction* detector);
   void UserSteppingAction(const G4Step* step) override;
 
  private:
   EventAction* fEventAction = nullptr;
+  const DetectorConstruction* fDetector = nullptr;
 };
 
 #endif

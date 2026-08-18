@@ -47,6 +47,8 @@ DetectorConstruction::DetectorConstruction()
       this, "/trd/detector/", "TRD gas detector configuration");
   fModeMessenger = std::make_unique<G4GenericMessenger>(
       this, "/trd/mode/", "TRD simulation mode");
+  fScoringMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/scoring/", "TR photon scoring configuration");
 
   auto& enabled = fRadiatorMessenger->DeclareProperty(
       "enabled", fUseRadiator, "Enable transition-radiation radiator");//声明可在宏中使用的命令
@@ -67,6 +69,12 @@ DetectorConstruction::DetectorConstruction()
   auto& trOnly = fModeMessenger->DeclareProperty(
       "trOnly", fTrOnly,
       "Record radiator-exit TR photons without building the gas detector");
+  auto& exitFlux = fScoringMessenger->DeclareProperty(
+      "exitFlux", fScoreExitFlux,
+      "Record direct TR photons crossing a virtual downstream plane");
+  auto& exitDistance = fScoringMessenger->DeclarePropertyWithUnit(
+      "exitDistance", "um", fExitPlaneDistance,
+      "Virtual scoring-plane distance downstream of the radiator exit");
 
   enabled.SetStates(G4State_PreInit);//限制命令生效阶段
   material.SetStates(G4State_PreInit);
@@ -76,6 +84,8 @@ DetectorConstruction::DetectorConstruction()
   length.SetStates(G4State_PreInit);
   gas.SetStates(G4State_PreInit);
   trOnly.SetStates(G4State_PreInit);
+  exitFlux.SetStates(G4State_PreInit);
+  exitDistance.SetStates(G4State_PreInit);
 }
 
 DetectorConstruction::~DetectorConstruction() = default;
@@ -88,6 +98,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Exception("DetectorConstruction", "TRD001", FatalException,
         "Foil thickness, gap thickness and total length must be positive; "
         "the total length must contain at least one complete period.");
+  }
+  if (fExitPlaneDistance < 0.) {
+    G4Exception("DetectorConstruction", "TRD004", FatalException,
+        "The exit scoring plane must be at or downstream of the radiator exit.");
   }
   if (fDetectorGasName != "XeNeIsobutane" &&
       fDetectorGasName != "XeCO2_85_15" &&
@@ -136,8 +150,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // ===== 2. 建立 World =====
   // G4Box 的后三个尺寸都是“半长”；世界取真空并留出额外边界。
-  const double worldHalfLength = std::max(fRadiatorLength + 10.0 * mm,
-                                           TRD::kGasLength + 10.0 * mm);
+  const double worldHalfLength = std::max({fRadiatorLength + 10.0 * mm,
+      TRD::kGasLength + 10.0 * mm, fExitPlaneDistance + 10.0 * mm});
   auto* worldSolid = new G4Box("World", 50 * mm, 50 * mm, worldHalfLength);
   auto* worldLogical = new G4LogicalVolume(worldSolid, vacuum, "World");
   auto* world = new G4PVPlacement(nullptr, {}, worldLogical, "World", nullptr, false, 0);
@@ -169,6 +183,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // 正常探测器响应模拟不会进入这个分支。
   if (fTrOnly) {
     G4cout << "TR-only mode: downstream gas detector disabled" << G4endl;
+    if (fScoreExitFlux)
+      G4cout << "TR exit scoring plane: z=" << fExitPlaneDistance / mm
+             << " mm" << G4endl;
     return world;
   }
 

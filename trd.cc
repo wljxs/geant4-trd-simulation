@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   runManager->SetUserAction(runAction);
   runManager->SetUserAction(eventAction);
   runManager->SetUserAction(new StackingAction(eventAction, detector));
-  runManager->SetUserAction(new SteppingAction(eventAction));
+  runManager->SetUserAction(new SteppingAction(eventAction, detector));
 
   // 必须在宏中的 /run/initialize 之前设置能量范围。
   ConfigureProductionCutEnergyRange();

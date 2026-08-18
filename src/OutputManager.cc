@@ -38,15 +38,23 @@ OutputManager::OutputManager(const G4String& fileName)
       "ionization_total_energy_keV/D");
   fTree->Branch("tr_photon_total_energy_keV", &fTRPhotonTotalEnergy,
       "tr_photon_total_energy_keV/D");
+  fTree->Branch("tr_exit_photon_total_energy_keV", &fTRExitPhotonTotalEnergy,
+      "tr_exit_photon_total_energy_keV/D");
   fTree->Branch("total_energy_keV", &fTotalEnergy, "total_energy_keV/D");
   fTree->Branch("primary_total_energy_loss_keV", &fPrimaryTotalEnergyLoss,
       "primary_total_energy_loss_keV/D");
   fTree->Branch("tr_photon_count", &fTRPhotonCount, "tr_photon_count/I");
+  fTree->Branch("tr_exit_photon_count", &fTRExitPhotonCount,
+      "tr_exit_photon_count/I");
   // vector 分支长度随每个 event 产生的 TR 光子数变化。
   fTree->Branch("tr_photon_energy_keV", &fTRPhotonEnergy);
   fTree->Branch("tr_photon_dir_x", &fTRPhotonDirectionX);
   fTree->Branch("tr_photon_dir_y", &fTRPhotonDirectionY);
   fTree->Branch("tr_photon_dir_z", &fTRPhotonDirectionZ);
+  fTree->Branch("tr_exit_photon_energy_keV", &fTRExitPhotonEnergy);
+  fTree->Branch("tr_exit_photon_dir_x", &fTRExitPhotonDirectionX);
+  fTree->Branch("tr_exit_photon_dir_y", &fTRExitPhotonDirectionY);
+  fTree->Branch("tr_exit_photon_dir_z", &fTRExitPhotonDirectionZ);
   // ===== 直方图：便于打开 ROOT 文件后立即查看常用分布 =====
   const double regionLengthMm = TRD::kRegionLength / mm;
   // 二维能谱统一显示 0--20 keV，每个 bin 宽 0.1 keV。
@@ -87,6 +95,14 @@ OutputManager::OutputManager(const G4String& fileName)
   fTRPhotonTotalEnergyHistogram = new TH1D("tr_photon_total_energy",
       ";Total generated TR photon energy per event (keV);Events",
       1000, 0.0, 500.0);
+  fTRExitPhotonCountHistogram = new TH1D("tr_exit_photon_count",
+      ";Number of TR photons crossing the exit plane per event;Events",
+      101, -0.5, 100.5);
+  fTRExitPhotonEnergyHistogram = new TH1D("tr_exit_photon_energy",
+      ";TR photon energy at exit plane (keV);Photons", 200, 0.0, 100.0);
+  fTRExitPhotonTotalEnergyHistogram = new TH1D("tr_exit_photon_total_energy",
+      ";Total TR photon energy at exit plane per event (keV);Events",
+      1000, 0.0, 500.0);
   fTREnergyDepositionHistogram = new TH1D("tr_energy_deposition",
       ";Total energy deposited by TR descendants per event (keV);Events",
       1000, 0.0, 500.0);
@@ -115,7 +131,8 @@ OutputManager::~OutputManager()
 void OutputManager::Fill(const std::array<double, TRD::kRegions>& energy,
                          const std::array<double, TRD::kRegions>& primaryEnergyLoss,
                          const std::array<double, TRD::kRegions>& trEnergy,
-                         const std::vector<TRPhoton>& trPhotons)
+                         const std::vector<TRPhoton>& trPhotons,
+                         const std::vector<TRPhoton>& trExitPhotons)
 {
   // ===== 1. 将每层数据从 Geant4 内部单位换算成 keV =====
   fTRTotalEnergy = 0.0;
@@ -163,9 +180,31 @@ void OutputManager::Fill(const std::array<double, TRD::kRegions>& energy,
     fTRPhotonDirectionZ.push_back(photon.dz);
     fTRPhotonEnergyHistogram->Fill(value);
   }
-  // ===== 3. 每个 event 给汇总直方图和 TTree 各填一次 =====
+  // ===== 3. 整理真正穿过虚拟出口面的直接 TR 光子 =====
+  fTRExitPhotonCount = static_cast<int>(trExitPhotons.size());
+  fTRExitPhotonTotalEnergy = 0.0;
+  fTRExitPhotonEnergy.clear();
+  fTRExitPhotonDirectionX.clear();
+  fTRExitPhotonDirectionY.clear();
+  fTRExitPhotonDirectionZ.clear();
+  fTRExitPhotonEnergy.reserve(trExitPhotons.size());
+  fTRExitPhotonDirectionX.reserve(trExitPhotons.size());
+  fTRExitPhotonDirectionY.reserve(trExitPhotons.size());
+  fTRExitPhotonDirectionZ.reserve(trExitPhotons.size());
+  for (const auto& photon : trExitPhotons) {
+    const double value = photon.energy / keV;
+    fTRExitPhotonEnergy.push_back(value);
+    fTRExitPhotonTotalEnergy += value;
+    fTRExitPhotonDirectionX.push_back(photon.dx);
+    fTRExitPhotonDirectionY.push_back(photon.dy);
+    fTRExitPhotonDirectionZ.push_back(photon.dz);
+    fTRExitPhotonEnergyHistogram->Fill(value);
+  }
+  // ===== 4. 每个 event 给汇总直方图和 TTree 各填一次 =====
   fTRPhotonCountHistogram->Fill(fTRPhotonCount);
   fTRPhotonTotalEnergyHistogram->Fill(fTRPhotonTotalEnergy);
+  fTRExitPhotonCountHistogram->Fill(fTRExitPhotonCount);
+  fTRExitPhotonTotalEnergyHistogram->Fill(fTRExitPhotonTotalEnergy);
   fTREnergyDepositionHistogram->Fill(fTRTotalEnergy);
   fTotalEnergyDepositionHistogram->Fill(fTotalEnergy);
   fTree->Fill();

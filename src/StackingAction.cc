@@ -31,10 +31,11 @@ G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track
                   creator->GetProcessName().find("XTRadiator") != std::string::npos)) {
     const auto& direction = track->GetMomentumDirection();
     fEventAction->MarkTRTrack(track->GetTrackID());
+    fEventAction->MarkDirectTRPhoton(track->GetTrackID());
     fEventAction->AddTRPhoton(track->GetKineticEnergy(),
         direction.x(), direction.y(), direction.z());
-    // 只研究生成谱时，信息记录完即可杀死光子，以节省输运时间。
-    if (fDetector->TrOnly()) return fKill;
+    // 启用出口计分时必须先输运到虚拟面，再由 SteppingAction 杀死。
+    if (fDetector->TrOnly() && !fDetector->ScoreExitFlux()) return fKill;
   }
 
   return fUrgent;

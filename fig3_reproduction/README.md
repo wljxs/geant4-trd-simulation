@@ -19,7 +19,8 @@ explicitly. The ROOT histogram is normalized as
 `yield = bin counts / (incident electrons * bin width in keV)`.
 
 `/trd/mode/trOnly true` disables the downstream gas detector and kills TR photons
-after they have been recorded. This is appropriate here because
+after they cross the virtual radiator-exit scoring plane and have been recorded.
+The plane is configured with `/trd/scoring/exitDistance 0 um`. This is appropriate here because
 the selected XTR process generates the exit flux and Fig. 3 explicitly shows
 the spectrum at the radiator exit. It also avoids spending time on a detector
 response that is not part of Fig. 3.

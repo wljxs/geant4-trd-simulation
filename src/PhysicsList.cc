@@ -38,7 +38,7 @@ class TransitionRadiationPhysics final : public G4VPhysicsConstructor {
           fDetector->GetRadiatorGap(), fDetector->GetRadiatorLayers(),
           "GammaXTRadiator");
     } else if (requestedModel == "gammaM") {
-      // 本项目默认使用的 gamma 辐射模型。
+      // 可选的 gamma 辐射模型。
       process = new G4XTRGammaRadModel(fDetector->GetRadiatorLogical(),
           100., 100., fDetector->GetFoilMaterial(),
           fDetector->GetRadiatorGas(), fDetector->GetFoilThickness(),

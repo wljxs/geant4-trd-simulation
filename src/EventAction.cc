@@ -10,14 +10,17 @@ void EventAction::BeginOfEventAction(const G4Event*)
   fPrimaryEnergyLoss.fill(0.0);
   fTREnergyDeposit.fill(0.0);
   fTRPhotons.clear();
+  fTRExitPhotons.clear();
   fTRTrackIDs.clear();
+  fDirectTRPhotonIDs.clear();
+  fScoredTRExitIDs.clear();
 }
 
 void EventAction::EndOfEventAction(const G4Event*)
 {
   // 一个 event 对应 ROOT TTree 中的一条记录。
   fRunAction->FillEvent(fEnergyDeposit, fPrimaryEnergyLoss, fTREnergyDeposit,
-                        fTRPhotons);
+                        fTRPhotons, fTRExitPhotons);
 }
 
 void EventAction::AddTREnergyDeposit(int region, double energy)
@@ -37,9 +40,25 @@ void EventAction::MarkTRTrack(int trackID)
   fTRTrackIDs.insert(trackID);
 }
 
+void EventAction::MarkDirectTRPhoton(int trackID)
+{
+  fDirectTRPhotonIDs.insert(trackID);
+}
+
 bool EventAction::IsTRTrack(int trackID) const
 {
   return fTRTrackIDs.find(trackID) != fTRTrackIDs.end();
+}
+
+bool EventAction::AddTRExitPhoton(int trackID, double energy,
+                                  double dx, double dy, double dz)
+{
+  if (fDirectTRPhotonIDs.find(trackID) == fDirectTRPhotonIDs.end() ||
+      !fScoredTRExitIDs.insert(trackID).second) {
+    return false;
+  }
+  fTRExitPhotons.push_back({energy, dx, dy, dz});
+  return true;
 }
 
 void EventAction::AddPrimaryEnergyLoss(int region, double energy)

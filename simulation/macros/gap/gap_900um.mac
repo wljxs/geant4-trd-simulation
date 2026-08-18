@@ -7,6 +7,8 @@
 /trd/radiator/gapThickness 900 um
 /trd/radiator/totalLength 91500 um
 /trd/mode/trOnly true
+/trd/scoring/exitFlux true
+/trd/scoring/exitDistance 0 um
 /trd/output/directory simulation/root/gap/gap_900um
 /run/initialize
 /run/beamOn 10000

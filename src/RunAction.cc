@@ -68,11 +68,13 @@ void RunAction::FillEvent(
     const std::array<double, TRD::kRegions>& energy,
     const std::array<double, TRD::kRegions>& primaryEnergyLoss,
     const std::array<double, TRD::kRegions>& trEnergy,
-    const std::vector<TRPhoton>& trPhotons)
+    const std::vector<TRPhoton>& trPhotons,
+    const std::vector<TRPhoton>& trExitPhotons)
 {
   if (!fOutput) {
     G4Exception("RunAction", "TRD303", FatalException,
         "ROOT output is not open; call /run/beamOn inside a valid run.");
   }
-  fOutput->Fill(energy, primaryEnergyLoss, trEnergy, trPhotons);
+  fOutput->Fill(energy, primaryEnergyLoss, trEnergy, trPhotons,
+                trExitPhotons);
 }

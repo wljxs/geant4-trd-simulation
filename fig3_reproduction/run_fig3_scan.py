@@ -74,6 +74,8 @@ def main():
 /trd/radiator/gapThickness {gap} um
 /trd/radiator/totalLength {total_length_um} um
 /trd/mode/trOnly true
+/trd/scoring/exitFlux true
+/trd/scoring/exitDistance 0 um
 /trd/output/directory {outdir}
 /run/initialize
 /run/beamOn {args.events}

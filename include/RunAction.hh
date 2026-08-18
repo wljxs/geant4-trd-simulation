@@ -29,7 +29,8 @@ class RunAction final : public G4UserRunAction {
   void FillEvent(const std::array<double, TRD::kRegions>& energy,
                  const std::array<double, TRD::kRegions>& primaryEnergyLoss,
                  const std::array<double, TRD::kRegions>& trEnergy,
-                 const std::vector<TRPhoton>& trPhotons);
+                 const std::vector<TRPhoton>& trPhotons,
+                 const std::vector<TRPhoton>& trExitPhotons);
 
  private:
   const PrimaryGeneratorAction* fGenerator = nullptr;  // 不拥有

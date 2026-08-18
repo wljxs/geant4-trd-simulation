@@ -85,7 +85,7 @@ def equation10_yield(energy_kev: float, gamma: float, foil_um: float,
 def read_geant4(group: str, name: str):
     path = HERE / "geant4" / group / name / "trd_electron.root"
     root_file = uproot.open(path)
-    histogram = root_file["tr_photon_energy"]
+    histogram = root_file["tr_exit_photon_energy"]
     counts = histogram.values(flow=False).astype(float)
     edges = histogram.axis().edges(flow=False)
     events = root_file["events"].num_entries
