@@ -21,7 +21,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 一个可执行文件由入口、几何、物理、粒子源和各级 Action 共同组成。
 add_executable(trd
   trd.cc
-  src/SimulationConfig.cc
   src/DetectorConstruction.cc
   src/PhysicsList.cc
   src/PrimaryGeneratorAction.cc

@@ -62,8 +62,28 @@ def main():
                   f"l1={foil} um, l2={gap} um, N={args.events}", flush=True)
             log = outdir / "run.log"
             outdir.mkdir(parents=True, exist_ok=True)
+            macro = outdir / "run.mac"
+            total_length_um = 100 * (foil + gap)
+            macro.write_text(
+                f"""/trd/beam/particle e-
+/trd/beam/momentum {momentum} GeV
+/trd/radiator/enabled true
+/trd/radiator/material G4_POLYETHYLENE
+/trd/radiator/model gammaM
+/trd/radiator/foilThickness {foil} um
+/trd/radiator/gapThickness {gap} um
+/trd/radiator/totalLength {total_length_um} um
+/trd/mode/trOnly true
+/trd/scoring/exitFlux true
+/trd/scoring/exitDistance 0 um
+/trd/output/directory {outdir}
+/run/initialize
+/run/beamOn {args.events}
+""",
+                encoding="utf-8",
+            )
             result = subprocess.run(
-                [str(EXECUTABLE), "e-", str(args.events)], cwd=PROJECT,
+                [str(EXECUTABLE), str(macro)], cwd=PROJECT,
                 env=env, text=True, stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT, check=False)
             log.write_text(result.stdout)

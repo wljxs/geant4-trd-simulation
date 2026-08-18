@@ -32,7 +32,10 @@ class EventAction final : public G4UserEventAction {
   void AddTREnergyDeposit(int region, double energy);     // TR 光子及其后代的沉积能
   void AddTRPhoton(double energy, double dx, double dy, double dz);
   void MarkTRTrack(int trackID);
+  void MarkDirectTRPhoton(int trackID);
   bool IsTRTrack(int trackID) const;
+  bool AddTRExitPhoton(int trackID, double energy,
+                       double dx, double dy, double dz);
 
  private:
   // 每个数组元素对应一个 GasLayer；单位仍是 Geant4 内部能量单位。
@@ -41,7 +44,10 @@ class EventAction final : public G4UserEventAction {
   std::array<double, TRD::kRegions> fPrimaryEnergyLoss{};
   std::array<double, TRD::kRegions> fTREnergyDeposit{};
   std::vector<TRPhoton> fTRPhotons;
+  std::vector<TRPhoton> fTRExitPhotons;
   std::unordered_set<int> fTRTrackIDs;
+  std::unordered_set<int> fDirectTRPhotonIDs;
+  std::unordered_set<int> fScoredTRExitIDs;
 };
 
 #endif

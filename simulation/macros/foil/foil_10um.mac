@@ -1,0 +1,14 @@
+/trd/beam/particle e-
+/trd/beam/momentum 2.0 GeV
+/trd/radiator/enabled true
+/trd/radiator/material G4_POLYETHYLENE
+/trd/radiator/model gammaM
+/trd/radiator/foilThickness 10 um
+/trd/radiator/gapThickness 300 um
+/trd/radiator/totalLength 31000 um
+/trd/mode/trOnly true
+/trd/scoring/exitFlux true
+/trd/scoring/exitDistance 0 um
+/trd/output/directory simulation/root/foil/foil_10um
+/run/initialize
+/run/beamOn 10000

@@ -23,7 +23,8 @@ class OutputManager {
   void Fill(const std::array<double, TRD::kRegions>& energy,
             const std::array<double, TRD::kRegions>& primaryEnergyLoss,
             const std::array<double, TRD::kRegions>& trEnergy,
-            const std::vector<TRPhoton>& trPhotons);
+            const std::vector<TRPhoton>& trPhotons,
+            const std::vector<TRPhoton>& trExitPhotons);
 
  private:
   // fFile 拥有 ROOT 文件；其余 ROOT 对象会挂到当前文件目录下，由 ROOT 管理。
@@ -36,6 +37,9 @@ class OutputManager {
   TH1D* fTRPhotonCountHistogram = nullptr;
   TH1D* fTRPhotonEnergyHistogram = nullptr;
   TH1D* fTRPhotonTotalEnergyHistogram = nullptr;
+  TH1D* fTRExitPhotonCountHistogram = nullptr;
+  TH1D* fTRExitPhotonEnergyHistogram = nullptr;
+  TH1D* fTRExitPhotonTotalEnergyHistogram = nullptr;
   TH1D* fTREnergyDepositionHistogram = nullptr;
   TH1D* fTotalEnergyDepositionHistogram = nullptr;
   std::array<TH1D*, TRD::kRegions> fRegion{};
@@ -48,13 +52,19 @@ class OutputManager {
   double fTRTotalEnergy = 0.0;
   double fIonizationTotalEnergy = 0.0;
   double fTRPhotonTotalEnergy = 0.0;
+  double fTRExitPhotonTotalEnergy = 0.0;
   double fTotalEnergy = 0.0;
   double fPrimaryTotalEnergyLoss = 0.0;
   int fTRPhotonCount = 0;
+  int fTRExitPhotonCount = 0;
   std::vector<double> fTRPhotonEnergy;
   std::vector<double> fTRPhotonDirectionX;
   std::vector<double> fTRPhotonDirectionY;
   std::vector<double> fTRPhotonDirectionZ;
+  std::vector<double> fTRExitPhotonEnergy;
+  std::vector<double> fTRExitPhotonDirectionX;
+  std::vector<double> fTRExitPhotonDirectionY;
+  std::vector<double> fTRExitPhotonDirectionZ;
 };
 
 #endif

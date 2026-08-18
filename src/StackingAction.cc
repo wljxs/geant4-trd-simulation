@@ -1,4 +1,5 @@
 #include "StackingAction.hh"
+#include "DetectorConstruction.hh"
 #include "EventAction.hh"
 
 #include "G4EmProcessSubType.hh"
@@ -6,10 +7,9 @@
 #include "G4Track.hh"
 #include "G4VProcess.hh"
 
-#include <cstdlib>
-
-StackingAction::StackingAction(EventAction* eventAction)
-    : fEventAction(eventAction) {}
+StackingAction::StackingAction(EventAction* eventAction,
+                               const DetectorConstruction* detector)
+    : fEventAction(eventAction), fDetector(detector) {}
 
 G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track)
 {
@@ -31,10 +31,11 @@ G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track
                   creator->GetProcessName().find("XTRadiator") != std::string::npos)) {
     const auto& direction = track->GetMomentumDirection();
     fEventAction->MarkTRTrack(track->GetTrackID());
+    fEventAction->MarkDirectTRPhoton(track->GetTrackID());
     fEventAction->AddTRPhoton(track->GetKineticEnergy(),
         direction.x(), direction.y(), direction.z());
-    // 只研究生成谱时，信息记录完即可杀死光子，以节省输运时间。
-    if (std::getenv("TRD_TR_ONLY")) return fKill;
+    // 启用出口计分时必须先输运到虚拟面，再由 SteppingAction 杀死。
+    if (fDetector->TrOnly() && !fDetector->ScoreExitFlux()) return fKill;
   }
 
   return fUrgent;

@@ -8,5 +8,6 @@
 /trd/radiator/gapThickness 100 um
 /trd/radiator/totalLength 9 cm
 /trd/detector/gas XeCO2_85_15
-/trd/run/events 50000
 /trd/output/directory /home/wljxs/projects/TR/geant4simulation/xe_co2_85_15_length_scan/root/radiator_9cm
+/run/initialize
+/run/beamOn 50000

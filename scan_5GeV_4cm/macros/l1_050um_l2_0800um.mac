@@ -7,5 +7,6 @@
 /trd/radiator/foilThickness 50 um
 /trd/radiator/gapThickness 800 um
 /trd/radiator/totalLength 4 cm
-/trd/run/events 50000
 /trd/output/directory /home/wljxs/projects/TR/geant4simulation/scan_5GeV_4cm/root/l1_050um_l2_0800um
+/run/initialize
+/run/beamOn 50000

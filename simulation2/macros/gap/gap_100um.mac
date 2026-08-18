@@ -1,0 +1,14 @@
+/trd/beam/particle e-
+/trd/beam/momentum 2.0 GeV
+/trd/radiator/enabled true
+/trd/radiator/material G4_POLYETHYLENE
+/trd/radiator/model gammaR
+/trd/radiator/foilThickness 15 um
+/trd/radiator/gapThickness 100 um
+/trd/radiator/totalLength 11500 um
+/trd/mode/trOnly true
+/trd/scoring/exitFlux true
+/trd/scoring/exitDistance 0 um
+/trd/output/directory simulation2/root/gap/gap_100um
+/run/initialize
+/run/beamOn 10000

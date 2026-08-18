@@ -2,6 +2,7 @@
 #include "TRDConstants.hh"
 
 #include "G4Box.hh"
+#include "G4GenericMessenger.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
 #include "G4IonisParamMat.hh"
@@ -9,6 +10,7 @@
 #include "G4PVPlacement.hh"
 #include "G4ProductionCuts.hh"
 #include "G4Region.hh"
+#include "G4StateManager.hh"
 #include "G4ios.hh"
 
 #include <algorithm>
@@ -16,55 +18,104 @@
 #include <cmath>
 #include <string>
 
-// 旧命令行入口：先取 TRDConstants.hh 的默认值，再允许环境变量覆盖。
-DetectorConstruction::DetectorConstruction(bool useRadiator)
-    : fUseRadiator(useRadiator),
-      fFoilThickness(TRD::kFoilThickness),
+// 默认值来自 TRDConstants.hh；随后 .mac 命令可在 /run/initialize 前直接修改。
+DetectorConstruction::DetectorConstruction()
+    : fFoilThickness(TRD::kFoilThickness),
       fRadiatorGap(TRD::kRadiatorGap),
-      fRadiatorLayers(TRD::kRadiatorLayers)
+      fTargetLength(TRD::kRadiatorLayers *
+                    (TRD::kFoilThickness + TRD::kRadiatorGap)),
+      fRadiatorLayers(TRD::kRadiatorLayers)//初始化
 {
+  // 保留旧脚本的环境变量入口；.mac 命令在构造后执行，优先级更高。
   fTrOnly = std::getenv("TRD_TR_ONLY") != nullptr;
-  if (const char* value = std::getenv("TRD_FOIL_THICKNESS_UM"))
+  if (const char* value = std::getenv("TRD_XTR_MODEL"))
+    fXTRModel = value;
+  if (const char* value = std::getenv("TRD_FOIL_THICKNESS_UM"))//看环境变量
     fFoilThickness = std::stod(value) * um;
   if (const char* value = std::getenv("TRD_RADIATOR_GAP_UM"))
     fRadiatorGap = std::stod(value) * um;
   if (const char* value = std::getenv("TRD_RADIATOR_LAYERS"))
-    fRadiatorLayers = std::stoi(value);
+    fTargetLength = std::stoi(value) * (fFoilThickness + fRadiatorGap);
   if (const char* value = std::getenv("TRD_FOIL_MATERIAL"))
     fFoilMaterialName = value;
   if (const char* value = std::getenv("TRD_DETECTOR_GAS"))
     fDetectorGasName = value;
-  if (fFoilThickness <= 0. || fRadiatorGap <= 0. || fRadiatorLayers <= 0) {
-    G4Exception("DetectorConstruction", "TRD001", FatalException,
-        "Radiator foil thickness, gap thickness and layer count must be positive.");
-  }
-  fRadiatorLength = fRadiatorLayers * (fFoilThickness + fRadiatorGap);
+
+  fRadiatorMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/radiator/", "TR radiator configuration");//创建一个新的 Geant4命令接口
+  fDetectorMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/detector/", "TRD gas detector configuration");
+  fModeMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/mode/", "TRD simulation mode");
+  fScoringMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/scoring/", "TR photon scoring configuration");
+
+  auto& enabled = fRadiatorMessenger->DeclareProperty(
+      "enabled", fUseRadiator, "Enable transition-radiation radiator");//声明可在宏中使用的命令
+  auto& material = fRadiatorMessenger->DeclareProperty(
+      "material", fFoilMaterialName, "Geant4 foil material name");
+  auto& model = fRadiatorMessenger->DeclareProperty(
+      "model", fXTRModel, "XTR model: gammaM, gammaR, or transpR");
+  auto& foil = fRadiatorMessenger->DeclarePropertyWithUnit(
+      "foilThickness", "um", fFoilThickness, "Foil thickness");
+  auto& gap = fRadiatorMessenger->DeclarePropertyWithUnit(
+      "gapThickness", "um", fRadiatorGap, "Air-gap thickness");
+  auto& length = fRadiatorMessenger->DeclarePropertyWithUnit(
+      "totalLength", "cm", fTargetLength,
+      "Target radiator length; only complete periods are built");
+  auto& gas = fDetectorMessenger->DeclareProperty(
+      "gas", fDetectorGasName,
+      "Detector gas: XeNeIsobutane, XeCO2_85_15, or XeCO2_95_5");
+  auto& trOnly = fModeMessenger->DeclareProperty(
+      "trOnly", fTrOnly,
+      "Record radiator-exit TR photons without building the gas detector");
+  auto& exitFlux = fScoringMessenger->DeclareProperty(
+      "exitFlux", fScoreExitFlux,
+      "Record direct TR photons crossing a virtual downstream plane");
+  auto& exitDistance = fScoringMessenger->DeclarePropertyWithUnit(
+      "exitDistance", "um", fExitPlaneDistance,
+      "Virtual scoring-plane distance downstream of the radiator exit");
+
+  enabled.SetStates(G4State_PreInit);//限制命令生效阶段
+  material.SetStates(G4State_PreInit);
+  model.SetStates(G4State_PreInit);
+  foil.SetStates(G4State_PreInit);
+  gap.SetStates(G4State_PreInit);
+  length.SetStates(G4State_PreInit);
+  gas.SetStates(G4State_PreInit);
+  trOnly.SetStates(G4State_PreInit);
+  exitFlux.SetStates(G4State_PreInit);
+  exitDistance.SetStates(G4State_PreInit);
 }
 
-// .mac 入口：targetLength 是目标长度，只保留能容纳的完整“薄膜+间隙”周期。
-DetectorConstruction::DetectorConstruction(bool useRadiator,
-    G4double foilThickness, G4double radiatorGap, G4double targetLength,
-    const G4String& foilMaterialName, const G4String& detectorGasName)
-    : fUseRadiator(useRadiator),
-      fFoilThickness(foilThickness),
-      fRadiatorGap(radiatorGap),
-      fRadiatorLayers(static_cast<G4int>(
-          std::floor(targetLength / (foilThickness + radiatorGap)))),
-      fFoilMaterialName(foilMaterialName),
-      fDetectorGasName(detectorGasName)
-{
-  fTrOnly = std::getenv("TRD_TR_ONLY") != nullptr;
-  if (fFoilThickness <= 0. || fRadiatorGap <= 0. || fRadiatorLayers <= 0) {
-    G4Exception("DetectorConstruction", "TRD001", FatalException,
-        "Radiator foil thickness, gap thickness and layer count must be positive.");
-  }
-  fRadiatorLength = fRadiatorLayers * (fFoilThickness + fRadiatorGap);
-}
+DetectorConstruction::~DetectorConstruction() = default;
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
+  // 宏已经执行完毕，现在统一检查参数并计算完整周期数。
+  if (fFoilThickness <= 0. || fRadiatorGap <= 0. ||
+      fTargetLength < fFoilThickness + fRadiatorGap) {
+    G4Exception("DetectorConstruction", "TRD001", FatalException,
+        "Foil thickness, gap thickness and total length must be positive; "
+        "the total length must contain at least one complete period.");
+  }
+  if (fExitPlaneDistance < 0.) {
+    G4Exception("DetectorConstruction", "TRD004", FatalException,
+        "The exit scoring plane must be at or downstream of the radiator exit.");
+  }
+  if (fDetectorGasName != "XeNeIsobutane" &&
+      fDetectorGasName != "XeCO2_85_15" &&
+      fDetectorGasName != "XeCO2_95_5") {
+    G4Exception("DetectorConstruction", "TRD003", FatalException,
+        "Gas must be XeNeIsobutane, XeCO2_85_15, or XeCO2_95_5.");
+  }
+  fRadiatorLayers = static_cast<G4int>(
+      std::floor(fTargetLength / (fFoilThickness + fRadiatorGap)));//向下取整
+  fRadiatorLength =
+      fRadiatorLayers * (fFoilThickness + fRadiatorGap);
+
   // ===== 1. 准备基础材料 =====
-  // NIST 管理器能按标准名称创建常用材料，例如 G4_AIR、G4_MYLAR。
+  // NIST 管理器能按标准名称创建常用材料，例如 G4_AIR、G4_MYLAR。还有目前手动定的ROHACELL_HF71
   auto* nist = G4NistManager::Instance();
   auto* air = nist->FindOrBuildMaterial("G4_AIR");
   auto* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
@@ -99,8 +150,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // ===== 2. 建立 World =====
   // G4Box 的后三个尺寸都是“半长”；世界取真空并留出额外边界。
-  const double worldHalfLength = std::max(fRadiatorLength + 10.0 * mm,
-                                           TRD::kGasLength + 10.0 * mm);
+  const double worldHalfLength = std::max({fRadiatorLength + 10.0 * mm,
+      TRD::kGasLength + 10.0 * mm, fExitPlaneDistance + 10.0 * mm});
   auto* worldSolid = new G4Box("World", 50 * mm, 50 * mm, worldHalfLength);
   auto* worldLogical = new G4LogicalVolume(worldSolid, vacuum, "World");
   auto* world = new G4PVPlacement(nullptr, {}, worldLogical, "World", nullptr, false, 0);
@@ -132,10 +183,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // 正常探测器响应模拟不会进入这个分支。
   if (fTrOnly) {
     G4cout << "TR-only mode: downstream gas detector disabled" << G4endl;
+    if (fScoreExitFlux)
+      G4cout << "TR exit scoring plane: z=" << fExitPlaneDistance / mm
+             << " mm" << G4endl;
     return world;
   }
 
-  // ===== 4. 配制气体材料 =====
+  // ===== 4. 配制气体材料 =====(目前只有三种气体混合物)
   G4Material* gas = nullptr;
   if (fDetectorGasName == "XeCO2_85_15" ||
       fDetectorGasName == "XeCO2_95_5") {
@@ -176,8 +230,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         worldLogical, false, region);
   }
 
-  // 名称 GasDetector 很重要：PhysicsList 用这个 Region 名称只在气体中
-  // 覆盖 PAI/PAIPhot 电离模型。
+  // 气体 Region 使用独立的 production cut；电离仍由标准 EM 物理处理。
   auto* gasRegion = new G4Region("GasDetector");
   auto* gasCuts = new G4ProductionCuts;
   double gasProductionCut = TRD::kGasProductionCut;
@@ -193,16 +246,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
          << TRD::kRegionLength / mm << " mm/layer, production cut = "
          << gasCuts->GetProductionCut("e-") / mm << " mm, mean excitation energy = "
          << gas->GetIonisation()->GetMeanExcitationEnergy() / eV << " eV" << G4endl;
-  // 可选诊断：打印 3 GeV/c μ- 对应的 beta*gamma 和密度效应修正。
-  if (std::getenv("TRD_DUMP_BETHE")) {
-    constexpr double muonMomentum = 3.0 * GeV;
-    constexpr double muonMass = 105.6583755 * MeV;
-    const double betaGamma = muonMomentum / muonMass;
-    G4cout << "Bethe-Bloch material input at 3 GeV/c mu-: beta*gamma = "
-           << betaGamma << ", density correction = "
-           << gas->GetIonisation()->DensityCorrection(std::log10(betaGamma))
-           << G4endl;
-  }
   // Construct() 必须把最外层物理体交还给 RunManager。
   return world;
 }

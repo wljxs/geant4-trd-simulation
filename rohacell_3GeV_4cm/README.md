@@ -10,10 +10,9 @@ solid volume fraction gives 76.7 mg/cm3, close to the nominal HF71 density of
 75 +/- 15 mg/cm3. This approximation captures the average TR response but not
 the stochastic topology of the real closed-cell foam.
 
-The gas ionisation fluctuations use Geant4's `G4PAIPhotModel` for both
-electrons and negative pions. This is important for reproducing the widths of
-the reference spectra in a thin gas detector. Radiator runs use the `gammaM`
-exit-flux model (`G4XTRGammaRadModel`).
+Gas ionisation uses the models and energy-loss fluctuations supplied by
+Geant4's standard EM physics. No PAI or PAIPhot override is installed.
+Radiator runs use the `gammaM` exit-flux model (`G4XTRGammaRadModel`).
 
 ```bash
 cmake --build build -j4
