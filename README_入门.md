@@ -1,5 +1,7 @@
 # TRD Geant4 模拟入门
 
+各正式版本新增和调整的功能见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 先运行一次
 
 在已经加载 Geant4 和 ROOT 环境的终端中执行：
