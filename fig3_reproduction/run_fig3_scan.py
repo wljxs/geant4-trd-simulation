@@ -69,9 +69,11 @@ def main():
 /trd/beam/momentum {momentum} GeV
 /trd/radiator/enabled true
 /trd/radiator/material G4_POLYETHYLENE
+/trd/radiator/model gammaM
 /trd/radiator/foilThickness {foil} um
 /trd/radiator/gapThickness {gap} um
 /trd/radiator/totalLength {total_length_um} um
+/trd/mode/trOnly true
 /trd/output/directory {outdir}
 /run/initialize
 /run/beamOn {args.events}

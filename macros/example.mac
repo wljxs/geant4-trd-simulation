@@ -54,6 +54,11 @@
 # 无辐射体对照：
 # /trd/radiator/enabled false
 
+# 是否只统计辐射体出口的 TR 光子。
+# false：建立下游气体探测器并正常输运光子。
+# true：不建立气体探测器，记录 TR 光子后立即终止其输运。
+/trd/mode/trOnly false
+
 
 # -----------------------------------------------------------------------------
 # 4. 辐射体薄膜材料
@@ -68,6 +73,11 @@
 #
 # 项目还专门实现了 Rohacell PMI 近似材料：
 # /trd/radiator/material ROHACELL_HF71
+
+# XTR 模型：gammaM（默认）、gammaR 或 transpR。
+/trd/radiator/model gammaM
+# /trd/radiator/model gammaR
+# /trd/radiator/model transpR
 
 
 # -----------------------------------------------------------------------------

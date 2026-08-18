@@ -24,6 +24,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction {
   // PhysicsList 通过这些只读接口取得 TR 模型所需的几何和材料参数。
   bool UseRadiator() const { return fUseRadiator; }
   bool TrOnly() const { return fTrOnly; }
+  const G4String& GetXTRModel() const { return fXTRModel; }
   G4LogicalVolume* GetRadiatorLogical() const { return fRadiatorLogical; }
   G4Material* GetFoilMaterial() const { return fFoilMaterial; }
   G4Material* GetRadiatorGas() const { return fRadiatorGas; }
@@ -36,6 +37,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction {
   // fTrOnly=true 时只产生/统计 TR 光子，不建立下游气体探测器。
   bool fUseRadiator = true;
   bool fTrOnly = false;
+  G4String fXTRModel = "gammaM";
   G4double fFoilThickness = 0.;
   G4double fRadiatorGap = 0.;
   G4double fTargetLength = 0.;
@@ -50,6 +52,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction {
 
   std::unique_ptr<G4GenericMessenger> fRadiatorMessenger;
   std::unique_ptr<G4GenericMessenger> fDetectorMessenger;
+  std::unique_ptr<G4GenericMessenger> fModeMessenger;
 };
 
 #endif

@@ -26,7 +26,10 @@ DetectorConstruction::DetectorConstruction()
                     (TRD::kFoilThickness + TRD::kRadiatorGap)),
       fRadiatorLayers(TRD::kRadiatorLayers)//初始化
 {
+  // 保留旧脚本的环境变量入口；.mac 命令在构造后执行，优先级更高。
   fTrOnly = std::getenv("TRD_TR_ONLY") != nullptr;
+  if (const char* value = std::getenv("TRD_XTR_MODEL"))
+    fXTRModel = value;
   if (const char* value = std::getenv("TRD_FOIL_THICKNESS_UM"))//看环境变量
     fFoilThickness = std::stod(value) * um;
   if (const char* value = std::getenv("TRD_RADIATOR_GAP_UM"))
@@ -42,11 +45,15 @@ DetectorConstruction::DetectorConstruction()
       this, "/trd/radiator/", "TR radiator configuration");//创建一个新的 Geant4命令接口
   fDetectorMessenger = std::make_unique<G4GenericMessenger>(
       this, "/trd/detector/", "TRD gas detector configuration");
+  fModeMessenger = std::make_unique<G4GenericMessenger>(
+      this, "/trd/mode/", "TRD simulation mode");
 
   auto& enabled = fRadiatorMessenger->DeclareProperty(
       "enabled", fUseRadiator, "Enable transition-radiation radiator");//声明可在宏中使用的命令
   auto& material = fRadiatorMessenger->DeclareProperty(
       "material", fFoilMaterialName, "Geant4 foil material name");
+  auto& model = fRadiatorMessenger->DeclareProperty(
+      "model", fXTRModel, "XTR model: gammaM, gammaR, or transpR");
   auto& foil = fRadiatorMessenger->DeclarePropertyWithUnit(
       "foilThickness", "um", fFoilThickness, "Foil thickness");
   auto& gap = fRadiatorMessenger->DeclarePropertyWithUnit(
@@ -57,13 +64,18 @@ DetectorConstruction::DetectorConstruction()
   auto& gas = fDetectorMessenger->DeclareProperty(
       "gas", fDetectorGasName,
       "Detector gas: XeNeIsobutane, XeCO2_85_15, or XeCO2_95_5");
+  auto& trOnly = fModeMessenger->DeclareProperty(
+      "trOnly", fTrOnly,
+      "Record radiator-exit TR photons without building the gas detector");
 
   enabled.SetStates(G4State_PreInit);//限制命令生效阶段
   material.SetStates(G4State_PreInit);
+  model.SetStates(G4State_PreInit);
   foil.SetStates(G4State_PreInit);
   gap.SetStates(G4State_PreInit);
   length.SetStates(G4State_PreInit);
   gas.SetStates(G4State_PreInit);
+  trOnly.SetStates(G4State_PreInit);
 }
 
 DetectorConstruction::~DetectorConstruction() = default;

@@ -12,9 +12,6 @@
 #include "G4XTRGammaRadModel.hh"
 #include "G4ios.hh"
 
-#include <cstdlib>
-#include <string>
-
 namespace {
 
 // 把 TR 过程封装成可注册的 PhysicsConstructor。
@@ -30,10 +27,8 @@ class TransitionRadiationPhysics final : public G4VPhysicsConstructor {
     if (!fDetector->UseRadiator())
       return;
 
-    // 默认 gammaM；旧扫描可通过环境变量选择另外两种 Geant4 XTR 实现。
-    const char* requestedModelEnvironment = std::getenv("TRD_XTR_MODEL");
-    const std::string requestedModel = requestedModelEnvironment ?
-        requestedModelEnvironment : "gammaM";
+    // .mac 中的 /trd/radiator/model 在 /run/initialize 前已写入。
+    const auto& requestedModel = fDetector->GetXTRModel();
     G4VDiscreteProcess* process = nullptr;
     if (requestedModel == "gammaR") {
       // Gamma 分布辐射体模型。
@@ -58,7 +53,7 @@ class TransitionRadiationPhysics final : public G4VPhysicsConstructor {
           "RegularXTRadiator");
     } else {
       G4Exception("TransitionRadiationPhysics", "TRD201", FatalException,
-          ("Unknown TRD_XTR_MODEL='" + requestedModel +
+          ("Unknown XTR model '" + requestedModel +
            "'; expected gammaR, gammaM, or transpR.").c_str());
       return;
     }

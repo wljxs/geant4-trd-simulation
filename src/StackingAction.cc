@@ -1,4 +1,5 @@
 #include "StackingAction.hh"
+#include "DetectorConstruction.hh"
 #include "EventAction.hh"
 
 #include "G4EmProcessSubType.hh"
@@ -6,10 +7,9 @@
 #include "G4Track.hh"
 #include "G4VProcess.hh"
 
-#include <cstdlib>
-
-StackingAction::StackingAction(EventAction* eventAction)
-    : fEventAction(eventAction) {}
+StackingAction::StackingAction(EventAction* eventAction,
+                               const DetectorConstruction* detector)
+    : fEventAction(eventAction), fDetector(detector) {}
 
 G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track)
 {
@@ -34,7 +34,7 @@ G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track
     fEventAction->AddTRPhoton(track->GetKineticEnergy(),
         direction.x(), direction.y(), direction.z());
     // 只研究生成谱时，信息记录完即可杀死光子，以节省输运时间。
-    if (std::getenv("TRD_TR_ONLY")) return fKill;
+    if (fDetector->TrOnly()) return fKill;
   }
 
   return fUrgent;

@@ -13,12 +13,12 @@ air. The three panels scan exactly the paper's four momenta/Lorentz factors,
 four foil thicknesses, and four gap thicknesses. Each Geant4 configuration
 contains 10,000 incident electrons. Transition radiation is generated with
 Geant4's `gammaM` mode (`G4XTRGammaRadModel`), which represents the flux after
-a Gamma-distributed radiator; the scan script sets `TRD_XTR_MODEL=gammaM`
+a Gamma-distributed radiator; each macro sets `/trd/radiator/model gammaM`
 explicitly. The ROOT histogram is normalized as
 
 `yield = bin counts / (incident electrons * bin width in keV)`.
 
-`TRD_TR_ONLY=1` disables the downstream gas detector and kills TR photons
+`/trd/mode/trOnly true` disables the downstream gas detector and kills TR photons
 after they have been recorded. This is appropriate here because
 the selected XTR process generates the exit flux and Fig. 3 explicitly shows
 the spectrum at the radiator exit. It also avoids spending time on a detector
